@@ -1,4 +1,5 @@
 from itertools import product, combinations
+import random
 
 term_values = [-1, 1]
 
@@ -27,15 +28,31 @@ def get_valid_secrets(utterances, d, k):
     return valid_secrets
 
 
-def main(d=3, k=2):
-    utterances = [
-        (1, 0, 0),
-        (1, 0, -1),
-    ]
-    secrets = get_valid_secrets(utterances, d, k)
-    print("=" * 10)
-    print("# of secrets:", len(secrets))
-    print(secrets)
+def sample_semi_canonical(d):
+    unassigned_idx = random.randint(0, d - 1)
+    return tuple(random.choice([-1, 1]) if idx != unassigned_idx else 0 for idx in range(d))
+
+
+def main(n=10, d=3):
+    ns = [5, 10, 50, 100, 1000, 2000]
+    n_secrets = []
+
+    for n in ns:
+        utterances = [sample_semi_canonical(d=3) for _ in range(n)]
+        k = 2**(d - 1)  # Half the worlds should be included in the secret.
+
+        secrets = get_valid_secrets(utterances, d, k)
+        n_secrets.append(len(secrets))
+        print("=" * 10)
+        print("# of secrets:", len(secrets))
+        print(secrets)
+    
+    import matplotlib.pyplot as plt
+    plt.plot(ns, n_secrets, marker=".")
+    plt.xlabel("# utterances")
+    plt.ylabel("# valid secrets")
+    plt.xscale("log")
+    plt.show()
 
 if __name__ == "__main__":
     main()
