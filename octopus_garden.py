@@ -38,6 +38,7 @@ def main(n=10, d=3):
     worlds = list(iter_worlds(d))
     secret = random.choice(list(combinations(worlds, k)))
     print("True secret:", secret)
+    print("=" * 10)
 
     ns = [5, 10, 50, 100, 1000, 2000, 5000, 10000]
     n_secrets = []
@@ -46,9 +47,8 @@ def main(n=10, d=3):
         utterances = [sample_semi_canonical(secret, d=3) for _ in range(n)]
         secrets = get_valid_secrets(utterances, worlds, k)
         n_secrets.append(len(secrets))
-        print("=" * 10)
         print("# of secrets:", len(secrets))
-        print(secrets)
+        print("=" * 10)
     
     import matplotlib.pyplot as plt
     plt.plot(ns, n_secrets, marker=".")
