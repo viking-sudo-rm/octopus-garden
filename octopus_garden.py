@@ -29,7 +29,7 @@ def get_valid_secrets(utterances, worlds, k):
     valid_secrets = []
     for secret in combinations(worlds, k):
         if all(any(evaluate(u, w) for w in secret) for u in utterances):
-            print("Found valid secret:", secret)
+            print("Found valid secret:", secret_as_str(secret))
             valid_secrets.append(secret)
     return valid_secrets
 
@@ -41,6 +41,14 @@ def sample_semi_canonical_utterance(secret, d: int, v: int = 1):
     return tuple(world[idx] if idx in unassigned_idxs else 0 for idx in range(d))
 
 
+symbols = [".", "+", "-"]
+
+def secret_as_str(secret) -> str:
+    return " ".join([utterance_as_str(u) for u in secret])
+
+def utterance_as_str(utterance) -> str:
+    return "".join([symbols[i] for i in utterance])
+
 def main(args):
     random.seed(args.seed)
     k = 2**(args.d - 1)  # Half the worlds should be included in the secret.
@@ -49,7 +57,7 @@ def main(args):
     print("True secret:", secret)
     print("=" * 10)
 
-    ns = [5, 10, 50, 100, 1000, 10000, 100000]
+    ns = [5, 10, 50, 100, 1000, 10000, 100000] #, 1000000]
     n_secrets = defaultdict(list)
 
     canonical_utterances = secret  # With our representation, a world is a canonical utterance.
@@ -59,7 +67,8 @@ def main(args):
     for v in range(args.d + 1):
         for n in ns:
             print("=" * 10, f"n={n}, v={v}", "=" * 10)
-            utterances = [sample_semi_canonical_utterance(secret, args.d) for _ in range(n)]
+            utterances = [sample_semi_canonical_utterance(secret, args.d, v=v) for _ in range(n)] # OOPS
+            print("First ten utterances:", secret_as_str(utterances[:10]))
             secrets = get_valid_secrets(utterances, worlds, k)
             n_secrets[v].append(len(secrets))
             print("# of secrets:", len(secrets))
