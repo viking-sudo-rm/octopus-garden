@@ -51,13 +51,13 @@ def utterance_as_str(utterance) -> str:
 
 def main(args):
     random.seed(args.seed)
-    k = 2**(args.d - 1)  # Half the worlds should be included in the secret.
+    k = 2**(args.d - 2)  # Half the worlds should be included in the secret.
     worlds = list(iter_worlds(args.d))
     secret = random.choice(list(combinations(worlds, k)))
     print("True secret:", secret)
     print("=" * 10)
 
-    ns = [5, 10, 50, 100, 1000, 10000, 100000] #, 1000000]
+    ns = [5, 10, 50, 100, 1000, 10000, 100000]
     n_secrets = defaultdict(list)
 
     canonical_utterances = secret  # With our representation, a world is a canonical utterance.
