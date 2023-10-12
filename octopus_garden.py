@@ -95,31 +95,40 @@ def main(args):
     random.seed(args.seed)
     k = 2**(args.d - 2)  # Half the worlds should be included in the secret.
     worlds = list(iter_worlds(args.d))
+    # TODO: Could enforce that we sample a non-universal secret?
     secret = random.choice(list(combinations(worlds, k)))
     print("True secret:", secret)
     print("=" * 10)
 
     ns = [5, 10, 50, 100, 1000, 10000, 100000]
     n_secrets = defaultdict(list)
+    n_nu_secrets = defaultdict(list)
 
     canonical_utterances = secret  # With our representation, a world is a canonical utterance.
     secrets = get_valid_secrets(canonical_utterances, worlds, k)
     assert len(secrets) == 1
 
-    for v in range(args.d + 1):
+    # When v=d, all utterances have no info, so all secrets are universal. Therefore, loop to d - 1.
+    for v in range(args.d):
         for n in ns:
             print("=" * 10, f"n={n}, v={v}", "=" * 10)
             utterances = [sample_semi_canonical_utterance(secret, args.d, v=v) for _ in range(n)] # OOPS
             print("First ten utterances:", secret_as_str(utterances[:10]))
             secrets = get_valid_secrets(utterances, worlds, k)
+
+            nu_secrets = [s for s in secrets
+                          if not all(any(evaluate(u, w) for w in s)
+                          for u in iter_utterances(args.d) if u.count(0) == v)]
             n_secrets[v].append(len(secrets))
-            print("# of secrets:", len(secrets))
+            n_nu_secrets[v].append(len(nu_secrets))
+            print("# of all/non-universal secrets:", len(secrets), len(nu_secrets))
     
     min_n_secrets = min(min(data) for data in n_secrets.values())
 
     import matplotlib.pyplot as plt
-    for v in range(args.d + 1):
+    for v in range(args.d):
         plt.plot(ns, n_secrets[v], marker=".", label=f"v={v}")
+        plt.plot(ns, n_nu_secrets[v], marker=".", label=f"v={v}, nu")
     plt.axhline(y=min_n_secrets, linestyle="dashed", color="gray")
     plt.scatter([len(secret)], [1], color="black", label="canonical-only")
     plt.xlabel("# utterances")
