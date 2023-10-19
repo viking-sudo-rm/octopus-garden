@@ -95,8 +95,12 @@ def main(args):
     random.seed(args.seed)
     k = 2**(args.d - 2)  # Half the worlds should be included in the secret.
     worlds = list(iter_worlds(args.d))
-    # TODO: Could enforce that we sample a non-universal secret?
-    secret = random.choice(list(combinations(worlds, k)))
+    # TODO: Clean up 
+    while True:
+        secret = random.choice(list(combinations(worlds, k)))
+        if all(not all(any(evaluate(u, w) for w in secret)
+                   for u in iter_utterances(args.d) if u.count(0) == v) for v in range(1, args.d)):
+            break
     print("True secret:", secret)
     print("=" * 10)
 
@@ -113,6 +117,7 @@ def main(args):
         for n in ns:
             print("=" * 10, f"n={n}, v={v}", "=" * 10)
             utterances = [sample_semi_canonical_utterance(secret, args.d, v=v) for _ in range(n)] # OOPS
+            utterances = list(set(utterances))
             print("First ten utterances:", secret_as_str(utterances[:10]))
             secrets = get_valid_secrets(utterances, worlds, k)
 
@@ -121,7 +126,13 @@ def main(args):
                           for u in iter_utterances(args.d) if u.count(0) == v)]
             n_secrets[v].append(len(secrets))
             n_nu_secrets[v].append(len(nu_secrets))
+
             print("# of all/non-universal secrets:", len(secrets), len(nu_secrets))
+            for s in nu_secrets:
+                if s == secret:
+                    print("true:", s)
+                else:
+                    print("nu:", s)
     
     min_n_secrets = min(min(data) for data in n_secrets.values())
 
